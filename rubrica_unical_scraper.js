@@ -23,7 +23,7 @@ function makecsv(rubrica) {
 }
 
 function scrapRubrica(){
-    debugger;
+
     selector = "body table:first table:first table:eq(1) table:eq(1) table:eq(0) tr:eq(1) table:first > tbody > tr:even > td > table"
     var rubrica = [];
     if (jQuery === undefined){
@@ -96,8 +96,9 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
 
     var rubrica = {};
     var completed = 0;
-    for (var i = 0; i < options.length ; i++) {
+    for (var i = 0; i < options.length; i++) {
 
+	rubrica[options[i]] = [];
 	console.log(options[i]+' '+i);
 	var aPage = webpage.create();
 	aPage.onConsoleMessage = (function(index,aPage){
@@ -118,7 +119,21 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
 
 		aPage.onLoadFinished = function() {
 		    aPage.injectJs('jquery-1.11.0.min.js');
-		    rubrica[options[i]] = aPage.evaluate(scrapRubrica);
+		    rubrica[options[i]] = rubrica[options[i]].concat(aPage.evaluate(scrapRubrica));
+
+			var isLastPage = aPage.evaluate(function(){
+					var link = jQuery('a:contains(Successivi)');
+					//follow the link
+					if (link.length == 1)
+					window.location = jQuery('a:contains(Successivi)').attr('href');
+					return !(link.length);
+			});
+
+			if (!isLastPage) {
+				console.log('Follow link in page '+i);
+				return;
+			}
+
 		    completed++;
 		    console.log(completed);
 		    if (completed >= options.length){

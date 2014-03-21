@@ -17,7 +17,7 @@ function makecsv(rubrica) {
 
 function scrapRubrica(){
     debugger;
-    selector = "body table:first table:first table:eq(1) table:eq(1) table:eq(0) tr:eq(1) table:first > tbody > tr:even"
+    selector = "body table:first table:first table:eq(1) table:eq(1) table:eq(0) tr:eq(1) table:first > tbody > tr:even > td > table"
     var rubrica = [];
     if (jQuery === undefined){
 	console.log('error scraping...');
@@ -27,13 +27,13 @@ function scrapRubrica(){
 
     numbers.each(function() {
 	var record = {};
-	var email = jQuery(this).find('span a[href*="mailto"]').html();
+	var email = jQuery(this).find('span a[href*="mailto"]:first').html();
 
 	if (email !== undefined && email !== null)
 	    record.email = email;
 
 	var spans = jQuery(this).find('td:eq(0) span').not(':has(a[href*=mailto])');
-	
+
 	record.name = jQuery(spans[0]).text().trim();
 	if (spans.length > 1){
 	    record.sett = jQuery(spans[1]).text().trim();
@@ -41,7 +41,7 @@ function scrapRubrica(){
 		record.occ = jQuery(spans[2]).text().trim();
 	    }
 	}
-	
+
 	if (spans.length > 3){
 	    record.additional = [];
 	    spans.filter(":gt(2)").each((function(r){
@@ -51,7 +51,7 @@ function scrapRubrica(){
 		};
 	    }(record)));
 	}
-	
+
 	record.phone = jQuery(this).find('td:eq(1) b:first').text().trim();
 	rubrica.push(record);
     });
@@ -59,6 +59,9 @@ function scrapRubrica(){
     return rubrica;
 }
 
+function debug(m){
+	console.log("debug:  " + m);
+}
 
 //opena main page and scrap rubrica links
 var mainpage = webpage.create();
@@ -68,11 +71,11 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
     console.log('Mainpage loaded');
 
     if (status !== 'success') {
-	console.log('Non riesco a caricare la pagina iniziale della rubrica!');
-	phantom.exit();
-	return;
+		console.log('Non riesco a caricare la pagina iniziale della rubrica!');
+		phantom.exit();
+		return;
     }
-    
+
     //mainpage has to be jquerify
     mainpage.injectJs('jquery-1.11.0.min.js');
     var options = mainpage.evaluate (function (){
@@ -86,7 +89,7 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
 
     var rubrica = {};
     var completed = 1;
-    for (var i = 1; i < options.length; i++) {
+    for (var i = 0; i < options.length; i++) {
 
 	console.log(options[i]+' '+i);
 	var aPage = webpage.create();
@@ -98,12 +101,12 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
 
 	aPage.open(mainurl, (function(i,aPage) {
 	    return function(status){
-		
+
 		if (status !== 'success') {
 		    console.log('Non riesco a caricare la pagina iniziale della rubrica!');
 		    return;
 		}
-		
+
 		aPage.injectJs('jquery-1.11.0.min.js');
 
 		aPage.onLoadFinished = function() {
@@ -135,8 +138,8 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
 		    jQuery('select option:eq('+index+')').prop('selected',true);
 		    JS_CercaStruttura();
 		    return true;
-		},i);
-		
+		},i+1);
+
 		if(!status){
 		    aPage.render('errore_'+i+'.png');
 		}

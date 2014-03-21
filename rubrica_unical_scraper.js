@@ -5,12 +5,19 @@ function makecsv(rubrica) {
     var content = "";
     var line;
     for (var struttura in rubrica){
-	var sub = rubrica[struttura];
-	for (var record in sub){
-	    r = sub[record];
-	    content += [struttura, r.name,r.phone,r.email,r.sett,r.occ].join(",");
-	    content += '\n';
-	}
+		var sub = rubrica[struttura];
+		for (var record in sub){
+			r = sub[record];
+			var line = [struttura, r.name,r.phone,r.email,r.sett,r.occ];
+
+			for (var f in line) {
+				if (line[f] !== undefined)
+				line[f] = line[f].replace(/,/g,' ');
+			}
+
+			content += line.join(',');
+			content += '\n';
+		}
     }
     return content;
 }
@@ -88,8 +95,8 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
     });
 
     var rubrica = {};
-    var completed = 1;
-    for (var i = 0; i < options.length; i++) {
+    var completed = 0;
+    for (var i = 0; i < options.length ; i++) {
 
 	console.log(options[i]+' '+i);
 	var aPage = webpage.create();
@@ -114,7 +121,7 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
 		    rubrica[options[i]] = aPage.evaluate(scrapRubrica);
 		    completed++;
 		    console.log(completed);
-		    if (completed == options.length){
+		    if (completed >= options.length){
 
 			console.log('saving JSON to rubrica.json');
 			var f = fs.open('rubrica.json','w');

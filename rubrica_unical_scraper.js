@@ -16,7 +16,8 @@ function makecsv(rubrica) {
 }
 
 function scrapRubrica(){
-    selector = "body  table:first table:first table:eq(1) table:eq(1) tr:eq(1) table:eq(0) table:odd";
+    debugger;
+    selector = "body table:first table:first table:eq(1) table:eq(1) table:eq(0) tr:eq(1) table:first > tbody > tr:even"
     var rubrica = [];
     if (jQuery === undefined){
 	console.log('error scraping...');
@@ -86,6 +87,8 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
     var rubrica = {};
     var completed = 1;
     for (var i = 1; i < options.length; i++) {
+
+	console.log(options[i]+' '+i);
 	var aPage = webpage.create();
 	aPage.onConsoleMessage = (function(index,aPage){
 	    return function(m) {

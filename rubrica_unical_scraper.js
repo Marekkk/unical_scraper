@@ -5,19 +5,19 @@ function makecsv(rubrica) {
     var content = "";
     var line;
     for (var struttura in rubrica){
-		var sub = rubrica[struttura];
-		for (var record in sub){
-			r = sub[record];
-			var line = [struttura, r.name,r.phone,r.email,r.sett,r.occ];
+	var sub = rubrica[struttura];
+	for (var record in sub){
+	    r = sub[record];
+	    var line = [struttura, r.name,r.phone,r.email,r.sett,r.occ];
 
-			for (var f in line) {
-				if (line[f] !== undefined)
-				line[f] = line[f].replace(/,/g,' ');
-			}
+	    for (var f in line) {
+		if (line[f] !== undefined)
+		    line[f] = line[f].replace(/,/g,' ');
+	    }
 
-			content += line.join(',');
-			content += '\n';
-		}
+	    content += line.join(',');
+	    content += '\n';
+	}
     }
     return content;
 }
@@ -67,7 +67,7 @@ function scrapRubrica(){
 }
 
 function debug(m){
-	console.log("debug:  " + m);
+    console.log("debug:  " + m);
 }
 
 //opena main page and scrap rubrica links
@@ -78,9 +78,9 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
     console.log('Mainpage loaded');
 
     if (status !== 'success') {
-		console.log('Non riesco a caricare la pagina iniziale della rubrica!');
-		phantom.exit();
-		return;
+	console.log('Non riesco a caricare la pagina iniziale della rubrica!');
+	phantom.exit();
+	return;
     }
 
     //mainpage has to be jquerify
@@ -121,18 +121,18 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
 		    aPage.injectJs('jquery-1.11.0.min.js');
 		    rubrica[options[i]] = rubrica[options[i]].concat(aPage.evaluate(scrapRubrica));
 
-			var isLastPage = aPage.evaluate(function(){
-					var link = jQuery('a:contains(Successivi)');
-					//follow the link
-					if (link.length == 1)
-					window.location = jQuery('a:contains(Successivi)').attr('href');
-					return !(link.length);
-			});
+		    var isLastPage = aPage.evaluate(function(){
+			var link = jQuery('a:contains(Successivi)');
+			//follow the link
+			if (link.length == 1)
+			    window.location = jQuery('a:contains(Successivi)').attr('href');
+			return !(link.length);
+		    });
 
-			if (!isLastPage) {
-				console.log('Follow link in page '+i);
-				return;
-			}
+		    if (!isLastPage) {
+			console.log('Follow link in page '+i);
+			return;
+		    }
 
 		    completed++;
 		    console.log(completed);

@@ -109,7 +109,6 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
 
 	aPage.open(mainurl, (function(i,aPage) {
 	    return function(status){
-
 		if (status !== 'success') {
 		    console.log('Non riesco a caricare la pagina iniziale della rubrica!');
 		    return;
@@ -117,39 +116,54 @@ mainpage.open('http://www.unical.it/portale/portaltemplates/view/search_phone.cf
 
 		aPage.injectJs('jquery-1.11.0.min.js');
 
-		aPage.onLoadFinished = function() {
-		    aPage.injectJs('jquery-1.11.0.min.js');
-		    rubrica[options[i]] = rubrica[options[i]].concat(aPage.evaluate(scrapRubrica));
+		/* OnLoadFinished seems fired too early (page not complete), or some js in the page missed with the page
+		   in the very early stage. Adding a wait for a sentinel as a workaround */
 
-		    var isLastPage = aPage.evaluate(function(){
-			var link = jQuery('a:contains(Successivi)');
-			//follow the link
-			if (link.length == 1)
-			    window.location = jQuery('a:contains(Successivi)').attr('href');
-			return !(link.length);
-		    });
-
-		    if (!isLastPage) {
-			console.log('Follow link in page '+i);
-			return;
+		aPage.onLoadFinished = function waitAndScrap(status){
+			console.log('load finished for page '+i+' status '+ status);
+			
+			aPage.injectJs('jquery-1.11.0.min.js');
+			var sentinel = aPage.evaluate(function() {
+					return jQuery('form').length;
+			});
+			
+			if (!sentinel) {
+				window.setTimeout(waitAndScrap, 300);
+				return;
+			}
+			
+			
+			rubrica[options[i]] = rubrica[options[i]].concat(aPage.evaluate(scrapRubrica));
+			
+			var isLastPage = aPage.evaluate(function(){
+					var link = jQuery('a:contains(Successivi)');
+					//follow the link
+					if (link.length == 1)
+					window.location = jQuery('a:contains(Successivi)').attr('href');
+					return !(link.length);
+			});
+			
+			if (!isLastPage) {
+				console.log('Follow link in page '+i);
+				return;
+			}
+			
+			completed++;
+			console.log(i+' page completed: ' + completed +'/'+options.length);
+			if (completed >= options.length){
+				
+				console.log('saving JSON to rubrica.json');
+				var f = fs.open('rubrica.json','w');
+				f.write(JSON.stringify(rubrica));
+				f.close();
+				console.log('saving CSV to rubrica.csv');
+				var f = fs.open('rubrica.csv','w');
+				f.write(makecsv(rubrica));
+				f.close();
+				phantom.exit();
 		    }
-
-		    completed++;
-		    console.log(completed);
-		    if (completed >= options.length){
-
-			console.log('saving JSON to rubrica.json');
-			var f = fs.open('rubrica.json','w');
-			f.write(JSON.stringify(rubrica));
-			f.close();
-			console.log('saving CSV to rubrica.csv');
-			var f = fs.open('rubrica.csv','w');
-			f.write(makecsv(rubrica));
-			f.close();
-			phantom.exit();
-		    }
-
-		};
+			
+		}
 
 		var status = aPage.evaluate (function submit(index){
 		    if (!jQuery){
